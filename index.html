@@ -3,14 +3,23 @@
 
 <head>
 
-    <meta charset="utf-8" />
-    <title>tronjs</title>
-    <style>
-    	* { padding: 0; margin: 1; }
-		body {background-color: grey;}
-    	canvas { background: #eee; display: block; margin: 0 auto; }
-    	h1 { text-align: center;}
-    </style>
+<meta charset="utf-8" />
+<title>tronjs</title>
+<style>
+* { padding: 0; margin: 1; }
+body {background-color: grey;}
+canvas { background: #eee; display: block; margin: 0 auto; }
+h1 { text-align: center;}
+
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 5px;
+    text-align: left;
+}
+</style>
 
 </head>
 
@@ -19,6 +28,29 @@
 <canvas id="canvas" width="1600" height="900"></canvas>
 <script src="tron.js"></script>
 
+<center>
+<table style="width:30%">
+  <caption>Options</caption>
+  <tr>
+    <th>Player 1</th>
+    <th>Player 2</th>
+    <th>Player 3</th>
+    <th>Player 4</th>
+  </tr>
+  <tr>
+    <td>Include: <input type="checkbox" id="inc1" checked></td>
+    <td>Include: <input type="checkbox" id="inc2" checked></td>
+	<td>Include: <input type="checkbox" id="inc3"></td>
+	<td>Include: <input type="checkbox" id="inc4"></td>
+  </tr>
+  <tr>
+    <td>AI: <input type="checkbox" id="ai1"></td>
+    <td>AI: <input type="checkbox" id="ai2" checked></td>
+	<td>AI: <input type="checkbox" id="ai3"></td>
+	<td>AI: <input type="checkbox" id="ai4"></td>
+  </tr>
+</table>
+</center>
 </body>
 
 </html>

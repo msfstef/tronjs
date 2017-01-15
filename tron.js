@@ -2,10 +2,13 @@
 
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext('2d');
+var options = {}
 
 // Controls are up, down, left, right.
 var p1_ctrls = new Array(87,83,65,68);
 var p2_ctrls = new Array(38,40,37,39);
+var p3_ctrls = new Array(104,101,100,102);
+var p4_ctrls = new Array(73,75,74,76);
 var spf = 0.03; // Seconds per frame.
 
 
@@ -79,7 +82,6 @@ Grid.prototype.update = function(players) {
 		var p = players[i]
 		if (!p.lost){
 		if (this.check_coll(p.pos[0],p.pos[1])){
-			console.log(p.p_no)
 			p.lost = true
 			loser_no += 1
 		} else {
@@ -203,7 +205,17 @@ var keyDown = function(e,p) {
         p.upPress = false;
         p.leftPress = false;
     }
-    if(e.keyCode == 32 && game == false) {
+    if(e.keyCode == 82 && game == false) {
+    	options = {
+		p1 : [document.getElementById("inc1").checked,
+				document.getElementById("ai1").checked],
+		p2 : [document.getElementById("inc2").checked,
+				document.getElementById("ai2").checked],
+		p3 : [document.getElementById("inc3").checked,
+				document.getElementById("ai3").checked],
+		p4 : [document.getElementById("inc4").checked,
+				document.getElementById("ai4").checked],
+		}
     	restart_game()
     }
 }
@@ -214,12 +226,18 @@ var loser_no = 0
 var step = 10
 var game_grid = new Grid(step)
 game_grid.draw();
-var p1 = new Player(parseInt(canvas.width*0.25/step),
+var p1 = new Player(parseInt(canvas.width*0.2/step),
 					parseInt(canvas.height*0.5/step),
 					p1_ctrls, 0);
-var p2 = new Player(parseInt(canvas.width*0.75/step)+1,
+var p2 = new Player(parseInt(canvas.width*0.8/step)+1,
 					parseInt(canvas.height*0.5/step),
 					p2_ctrls, 1);
+var p3 = new Player(parseInt(canvas.width*0.5/step),
+					parseInt(canvas.height*0.8/step + 1),
+					p3_ctrls, 2);
+var p4 = new Player(parseInt(canvas.width*0.5/step),
+					parseInt(canvas.height*0.2/step + 1),
+					p4_ctrls, 3);
 var players = new Array(p1,p2);
 
 
@@ -229,20 +247,38 @@ var restart_game = function() {
 	step = 10
 	game_grid = new Grid(step)
 	game_grid.draw();
-	p1 = new Player(parseInt(canvas.width*0.25/step),
+	players = new Array();	
+	if (options['p1'][0]) {
+	p1 = new Player(parseInt(canvas.width*0.2/step),
 					parseInt(canvas.height*0.5/step),
 					p1_ctrls, 0);
-	p2 = new Player(parseInt(canvas.width*0.75/step)+1,
+	players.push(p1);
+	}
+	if (options['p2'][0]) {
+	p2 = new Player(parseInt(canvas.width*0.8/step)+1,
 					parseInt(canvas.height*0.5/step),
 					p2_ctrls, 1);
-	players = new Array(p1,p2);
-
+	players.push(p2);
+	}
+	if (options['p3'][0]) {
+	p3 = new Player(parseInt(canvas.width*0.5/step),
+					parseInt(canvas.height*0.8/step),
+					p3_ctrls, 2);
+	players.push(p3);
+	}
+	if (options['p4'][0]) {
+	p4 = new Player(parseInt(canvas.width*0.5/step),
+					parseInt(canvas.height*0.2/step),
+					p4_ctrls, 3);
+	players.push(p4);
+	}
 }
 
 
 document.addEventListener("keydown", function(e){keyDown(e,p1);}, false);
-
 document.addEventListener("keydown", function(e){keyDown(e,p2);}, false);
+document.addEventListener("keydown", function(e){keyDown(e,p3);}, false);
+document.addEventListener("keydown", function(e){keyDown(e,p4);}, false);
 
 var update = function(){
 	for (var i=0; i<players.length; i++) {
