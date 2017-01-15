@@ -1,6 +1,6 @@
 'use strict'
 
-var canvas = document.getElementById('canvasHB');
+var canvas = document.getElementById('canvasTJ');
 var ctx = canvas.getContext('2d');
 
 // Controls are up, down, left, right.
