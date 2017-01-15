@@ -203,7 +203,11 @@ var keyDown = function(e,p) {
         p.upPress = false;
         p.leftPress = false;
     }
+    if(e.keyCode == 32 && game == false) {
+    	restart_game()
+    }
 }
+
 
 var game = true
 var loser_no = 0
@@ -217,6 +221,23 @@ var p2 = new Player(parseInt(canvas.width*0.75/step)+1,
 					parseInt(canvas.height*0.5/step),
 					p2_ctrls, 1);
 var players = new Array(p1,p2);
+
+
+var restart_game = function() {
+	game = true
+	loser_no = 0
+	step = 10
+	game_grid = new Grid(step)
+	game_grid.draw();
+	p1 = new Player(parseInt(canvas.width*0.25/step),
+					parseInt(canvas.height*0.5/step),
+					p1_ctrls, 0);
+	p2 = new Player(parseInt(canvas.width*0.75/step)+1,
+					parseInt(canvas.height*0.5/step),
+					p2_ctrls, 1);
+	players = new Array(p1,p2);
+
+}
 
 
 document.addEventListener("keydown", function(e){keyDown(e,p1);}, false);
