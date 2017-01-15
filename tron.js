@@ -23,15 +23,13 @@ function createArray(length) {
 }
 
 
-var Grid = function(step_size, players){
+var Grid = function(step_size){
 	this.step = step_size
 	this.height = canvas.height;
 	this.width = canvas.width;
 	this.no_ver = parseInt(this.height/step_size);
 	this.no_hor = parseInt(this.width/step_size);
 	this.grid = createArray(this.no_hor, this.no_ver);
-
-	this.players = players;
 }
 
 Grid.prototype.cover = function(i,j) {
@@ -44,7 +42,9 @@ Grid.prototype.player = function(i,j) {
 
 Grid.prototype.check_coll = function(i,j) {
 	if (this.grid[i][j] === 1 ||
-		this.grid[i][j] === 2) {
+		this.grid[i][j] === 2 ||
+		i >= this.no_hor ||
+		j >= this.no_ver) {
 		return true
 	} else {
 		return false
@@ -56,9 +56,48 @@ Grid.prototype.clean = function(i,j) {
 }
 
 
+Grid.prototype.update = function(players) {
+	for (var i=0; i < players.length; i++) {
+		var p = players[i]
+		if (this.check_coll(p.pos[0],p.pos[1])){
+			game = false;
+			loser = i;
+			loser_no += 1
+		}
+		this.cover(p.last_pos[0],p.last_pos[1])
+		this.player(p.pos[0],p.pos[1])
+	}
+}
+
+Grid.prototype.draw = function(players) {
+	
+	for (var i=0; i < this.no_hor; i++) {
+		for (var j=0; j < this.no_ver; j++) {
+			ctx.beginPath();
+			if (this.grid[i][j] == 0) {
+				ctx.fillStyle = '#ffffff';
+			} else if (this.grid[i][j] == 1) {
+				ctx.fillStyle = '#000000';
+			} else {
+				ctx.fillStyle = '#ff0000';
+			}
+			ctx.rect(i*this.step,
+					j*this.step,
+					this.step,
+					this.step);
+			ctx.fill();
+			ctx.closePath();
+			console.log('drawing')
+		}
+	}
+	
+}
+
+
 
 var Player = function(i,j,ctrls,p_no) {
 	this.pos = [i,j]
+	this.last_pos = [i,j]
 	this.p_no = p_no
 	this.ctrls = ctrls
 	this.dir = p_no*2 + 1 // Direction up, right, down, left: 0,1,2,3.
@@ -72,13 +111,85 @@ Player.prototype.update = function() {
 	var dir_list = [this.upPress,this.rightPress,
 					this.downPress,this.leftPress]
 	for (var i=0; i < dir_list.length; i++) {
-		if (this.dir != i) {
-			if dir_list[i] {
+		if (this.dir != i &&
+			this.dir != (i+2)%4) {
+			if (dir_list[i]) {
 				this.dir = i;
 			}
 		}
 	}
-
-	this.pos[0] += (this.dir - 1)%2
-	this.pos[1] += (2 - this.dir)%2
+	this.last_pos = JSON.parse(JSON.stringify(this.pos))
+	this.pos[1] += (this.dir - 1)%2
+	this.pos[0] += (2 - this.dir)%2
 }
+
+
+var keyDown = function(e,p) {
+	if(e.keyCode == p.ctrls[0]) {
+        p.upPress = true;
+    }
+    else if(e.keyCode == p.ctrls[1]) {
+        p.downPress = true;
+    } 
+    else if(e.keyCode == p.ctrls[2]) {
+        p.leftPress = true;
+    }
+    else if(e.keyCode == p.ctrls[3]) {
+        p.rightPress = true;
+    }
+}
+
+var keyUp = function(e,p) {
+	if(e.keyCode == p.ctrls[0]) {
+        p.upPress = false;
+    }
+    else if(e.keyCode == p.ctrls[1]) {
+        p.downPress = false;
+    } 
+    else if(e.keyCode == p.ctrls[2]) {
+        p.leftPress = false;
+    }
+    else if(e.keyCode == p.ctrls[3]) {
+        p.rightPress = false;
+    }
+}
+
+var game = true
+var loser = ''
+var loser_no = 0
+var step = 30
+var game_grid = new Grid(step)
+var p1 = new Player(parseInt(canvas.width*0.25/step),
+					parseInt(canvas.height*0.5/step),
+					p1_ctrls, 0);
+var p2 = new Player(parseInt(canvas.width*0.75/step),
+					parseInt(canvas.height*0.5/step),
+					p2_ctrls, 1);
+var players = new Array(p1);
+
+
+document.addEventListener("keydown", function(e){keyDown(e,p1);}, false);
+document.addEventListener("keyup", function(e){keyUp(e,p1);}, false);
+
+document.addEventListener("keydown", function(e){keyDown(e,p2);}, false);
+document.addEventListener("keyup", function(e){keyUp(e,p2);}, false);
+
+var update = function(){
+	console.log('loool')
+	ctx.clearRect(0,0,canvas.width,canvas.height);
+	game_grid.draw();
+	for (var i=0; i<players.length; i++) {
+		players[i].update();
+		console.log(players[i].pos[0])
+	}
+	game_grid.update(players);
+}
+
+//setInterval(update,spf*1000);
+function repeat() {
+  	if (game) {
+  		update()
+	}
+  	requestAnimationFrame(repeat);
+}
+repeat();
