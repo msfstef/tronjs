@@ -23,13 +23,15 @@ function createArray(length) {
 }
 
 
-var Grid = function(step_size){
+var Grid = function(step_size, players){
 	this.step = step_size
 	this.height = canvas.height;
 	this.width = canvas.width;
 	this.no_ver = parseInt(this.height/step_size);
 	this.no_hor = parseInt(this.width/step_size);
 	this.grid = createArray(this.no_hor, this.no_ver);
+
+	this.players = players;
 }
 
 Grid.prototype.cover = function(i,j) {
@@ -51,4 +53,32 @@ Grid.prototype.check_coll = function(i,j) {
 
 Grid.prototype.clean = function(i,j) {
 	this.grid = createArray(this.no_hor, this.no_ver);
+}
+
+
+
+var Player = function(i,j,ctrls,p_no) {
+	this.pos = [i,j]
+	this.p_no = p_no
+	this.ctrls = ctrls
+	this.dir = p_no*2 + 1 // Direction up, right, down, left: 0,1,2,3.
+	this.upPress = false;
+	this.downPress = false;
+	this.leftPress = false;
+	this.rightPress = false;
+}
+
+Player.prototype.update = function() {
+	var dir_list = [this.upPress,this.rightPress,
+					this.downPress,this.leftPress]
+	for (var i=0; i < dir_list.length; i++) {
+		if (this.dir != i) {
+			if dir_list[i] {
+				this.dir = i;
+			}
+		}
+	}
+
+	this.pos[0] += (this.dir - 1)%2
+	this.pos[1] += (2 - this.dir)%2
 }
