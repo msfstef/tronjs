@@ -34,17 +34,35 @@ var Grid = function(step_size){
 
 Grid.prototype.cover = function(i,j) {
 	this.grid[i][j] = 1;
+	ctx.beginPath();
+	ctx.rect(i*this.step,
+			j*this.step,
+			this.step,
+			this.step);
+	ctx.fillStyle = '#000000';
+	ctx.fill();
+	ctx.closePath();
 }
 
 Grid.prototype.player = function(i,j) {
 	this.grid[i][j] = 2;
+	ctx.beginPath();
+	ctx.rect(i*this.step,
+			j*this.step,
+			this.step,
+			this.step);
+	ctx.fillStyle = '#ff0000';
+	ctx.fill();
+	ctx.closePath();
 }
 
 Grid.prototype.check_coll = function(i,j) {
 	if (this.grid[i][j] === 1 ||
 		this.grid[i][j] === 2 ||
 		i >= this.no_hor ||
-		j >= this.no_ver) {
+		i < 0 ||
+		j >= this.no_ver ||
+		j < 0) {
 		return true
 	} else {
 		return false
@@ -63,31 +81,24 @@ Grid.prototype.update = function(players) {
 			game = false;
 			loser = i;
 			loser_no += 1
+		} else {
+			this.cover(p.last_pos[0],p.last_pos[1])
+			this.player(p.pos[0],p.pos[1])
 		}
-		this.cover(p.last_pos[0],p.last_pos[1])
-		this.player(p.pos[0],p.pos[1])
 	}
 }
 
 Grid.prototype.draw = function(players) {
-	
 	for (var i=0; i < this.no_hor; i++) {
 		for (var j=0; j < this.no_ver; j++) {
 			ctx.beginPath();
-			if (this.grid[i][j] == 0) {
-				ctx.fillStyle = '#ffffff';
-			} else if (this.grid[i][j] == 1) {
-				ctx.fillStyle = '#000000';
-			} else {
-				ctx.fillStyle = '#ff0000';
-			}
+			ctx.fillStyle = '#ffffff';
 			ctx.rect(i*this.step,
 					j*this.step,
 					this.step,
 					this.step);
 			ctx.fill();
 			ctx.closePath();
-			console.log('drawing')
 		}
 	}
 	
@@ -157,15 +168,16 @@ var keyUp = function(e,p) {
 var game = true
 var loser = ''
 var loser_no = 0
-var step = 30
+var step = 10
 var game_grid = new Grid(step)
+game_grid.draw();
 var p1 = new Player(parseInt(canvas.width*0.25/step),
 					parseInt(canvas.height*0.5/step),
 					p1_ctrls, 0);
 var p2 = new Player(parseInt(canvas.width*0.75/step),
 					parseInt(canvas.height*0.5/step),
 					p2_ctrls, 1);
-var players = new Array(p1);
+var players = new Array(p1,p2);
 
 
 document.addEventListener("keydown", function(e){keyDown(e,p1);}, false);
@@ -175,9 +187,6 @@ document.addEventListener("keydown", function(e){keyDown(e,p2);}, false);
 document.addEventListener("keyup", function(e){keyUp(e,p2);}, false);
 
 var update = function(){
-	console.log('loool')
-	ctx.clearRect(0,0,canvas.width,canvas.height);
-	game_grid.draw();
 	for (var i=0; i<players.length; i++) {
 		players[i].update();
 		console.log(players[i].pos[0])
