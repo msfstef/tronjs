@@ -25,6 +25,10 @@ function createArray(length) {
     return arr;
 }
 
+function sum_arr(total, num) {
+    return total + num;
+}
+
 
 var Grid = function(step_size){
 	this.step = step_size
@@ -127,13 +131,16 @@ Grid.prototype.draw = function(players) {
 
 
 var Player = function(i,j,ctrls,p_no, ai) {
-	this.pos = [i,j]
-	this.last_pos = [i,j]
-	this.p_no = p_no
-	this.ctrls = ctrls
-	this.ai = ai
+	this.pos = [i,j];
+	this.last_pos = [i,j];
+	this.p_no = p_no;
+	this.ctrls = ctrls;
+
+	this.ai = ai;
+	this.past_turns = [0,0,0,0,0,0];
+
 	// Direction up, right, down, left: 0,1,2,3.
-	this.dir = (p_no*2 + 1)%5 
+	this.dir = (p_no*2 + 1)%5;
 	this.lost = false
 	if (p_no == 0){
 		this.head_color = 'red'
@@ -176,14 +183,23 @@ Player.prototype.update = function(grid) {
 }
 
 Player.prototype.AIturn = function(grid) {
+	var old_dir = JSON.parse(JSON.stringify(this.dir))
+	console.log(this.past_turns)
 	if (grid.check_surrounded(this.pos[0], this.pos[1])) {
 		return true
 	}
 
-
-
 	if (Math.random()*100 > 95) {
+		var weight = this.past_turns.reduce(sum_arr);
 		this.dir = parseInt(Math.random()*4);
+		var turn = this.dir - old_dir;
+		if (Math.abs(turn) === 3) {
+		turn = -Math.sign(turn)*(Math.abs(turn) - 2)
+		}
+		if (Math.sign(turn) == Math.sign(weight)) {
+			console.log('aborted')
+			this.dir = old_dir;
+		}
 	}
 	var temp_pos = [0,0]
 	temp_pos[0] = this.pos[0] + (2 - this.dir)%2
@@ -196,9 +212,17 @@ Player.prototype.AIturn = function(grid) {
 		temp_pos[1] = this.pos[1] + (temp_dir - 1)%2
 		if (!grid.check_coll(temp_pos[0], temp_pos[1])) {
 			this.dir = temp_dir;
-			console.log(this.dir)
 		}
 	}
+	}
+	// 1 for right, -1 for left
+	var turn = this.dir - old_dir;
+	if (Math.abs(turn) === 3) {
+		turn = -Math.sign(turn)*(Math.abs(turn) - 2)
+	}
+	if (turn != 0) {
+	this.past_turns = this.past_turns.slice(1);
+	this.past_turns.push(turn);
 	}
 } 
 
