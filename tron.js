@@ -72,6 +72,17 @@ Grid.prototype.check_coll = function(i,j) {
 	}
 }
 
+Grid.prototype.check_surrounded = function(i,j) {
+	if (this.check_coll(i+1,j) &&
+		this.check_coll(i-1,j) &&
+		this.check_coll(i,j+1) &&
+		this.check_coll(i,j-1)) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
 Grid.prototype.clean = function(i,j) {
 	this.grid = createArray(this.no_hor, this.no_ver);
 }
@@ -115,11 +126,12 @@ Grid.prototype.draw = function(players) {
 
 
 
-var Player = function(i,j,ctrls,p_no) {
+var Player = function(i,j,ctrls,p_no, ai) {
 	this.pos = [i,j]
 	this.last_pos = [i,j]
 	this.p_no = p_no
 	this.ctrls = ctrls
+	this.ai = ai
 	// Direction up, right, down, left: 0,1,2,3.
 	this.dir = (p_no*2 + 1)%5 
 	this.lost = false
@@ -143,7 +155,7 @@ var Player = function(i,j,ctrls,p_no) {
 	this.rightPress = false;
 }
 
-Player.prototype.update = function() {
+Player.prototype.update = function(grid) {
 	var dir_list = [this.upPress,this.rightPress,
 					this.downPress,this.leftPress]
 	for (var i=0; i < dir_list.length; i++) {
@@ -154,10 +166,42 @@ Player.prototype.update = function() {
 			}
 		}
 	}
+	if (this.ai) {
+		this.AIturn(grid);
+	}
+
 	this.last_pos = JSON.parse(JSON.stringify(this.pos))
 	this.pos[1] += (this.dir - 1)%2
 	this.pos[0] += (2 - this.dir)%2
 }
+
+Player.prototype.AIturn = function(grid) {
+	if (grid.check_surrounded(this.pos[0], this.pos[1])) {
+		return true
+	}
+
+
+
+	if (Math.random()*100 > 95) {
+		this.dir = parseInt(Math.random()*4);
+	}
+	var temp_pos = [0,0]
+	temp_pos[0] = this.pos[0] + (2 - this.dir)%2
+	temp_pos[1] = this.pos[1] + (this.dir - 1)%2
+	if (grid.check_coll(temp_pos[0], temp_pos[1])) {
+	this.dir = 'none';
+	while (this.dir == 'none') {
+		var temp_dir = parseInt(Math.random()*4);
+		temp_pos[0] = this.pos[0] + (2 - temp_dir)%2
+		temp_pos[1] = this.pos[1] + (temp_dir - 1)%2
+		if (!grid.check_coll(temp_pos[0], temp_pos[1])) {
+			this.dir = temp_dir;
+			console.log(this.dir)
+		}
+	}
+	}
+} 
+
 
 
 
@@ -228,16 +272,16 @@ var game_grid = new Grid(step)
 game_grid.draw();
 var p1 = new Player(parseInt(canvas.width*0.2/step),
 					parseInt(canvas.height*0.5/step),
-					p1_ctrls, 0);
+					p1_ctrls, 0, false);
 var p2 = new Player(parseInt(canvas.width*0.8/step)+1,
 					parseInt(canvas.height*0.5/step),
-					p2_ctrls, 1);
+					p2_ctrls, 1, true);
 var p3 = new Player(parseInt(canvas.width*0.5/step),
 					parseInt(canvas.height*0.8/step + 1),
-					p3_ctrls, 2);
+					p3_ctrls, 2, false);
 var p4 = new Player(parseInt(canvas.width*0.5/step),
 					parseInt(canvas.height*0.2/step + 1),
-					p4_ctrls, 3);
+					p4_ctrls, 3, false);
 var players = new Array(p1,p2);
 
 
@@ -251,25 +295,25 @@ var restart_game = function() {
 	if (options['p1'][0]) {
 	p1 = new Player(parseInt(canvas.width*0.2/step),
 					parseInt(canvas.height*0.5/step),
-					p1_ctrls, 0);
+					p1_ctrls, 0, options['p1'][1]);
 	players.push(p1);
 	}
 	if (options['p2'][0]) {
 	p2 = new Player(parseInt(canvas.width*0.8/step)+1,
 					parseInt(canvas.height*0.5/step),
-					p2_ctrls, 1);
+					p2_ctrls, 1, options['p2'][1]);
 	players.push(p2);
 	}
 	if (options['p3'][0]) {
 	p3 = new Player(parseInt(canvas.width*0.5/step),
 					parseInt(canvas.height*0.8/step),
-					p3_ctrls, 2);
+					p3_ctrls, 2, options['p3'][1]);
 	players.push(p3);
 	}
 	if (options['p4'][0]) {
 	p4 = new Player(parseInt(canvas.width*0.5/step),
 					parseInt(canvas.height*0.2/step),
-					p4_ctrls, 3);
+					p4_ctrls, 3, options['p4'][1]);
 	players.push(p4);
 	}
 }
@@ -283,7 +327,7 @@ document.addEventListener("keydown", function(e){keyDown(e,p4);}, false);
 var update = function(){
 	for (var i=0; i<players.length; i++) {
 		if (!players[i].lost){
-			players[i].update();
+			players[i].update(game_grid);
 		}
 	}
 	game_grid.update(players);
