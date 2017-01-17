@@ -137,7 +137,7 @@ var Player = function(i,j,ctrls,p_no, ai) {
 	this.ctrls = ctrls;
 
 	this.ai = ai;
-	this.past_turns = [0,0,0,0,0,0];
+	this.past_turns = [0,0,0,0];
 
 	// Direction up, right, down, left: 0,1,2,3.
 	this.dir = (p_no*2 + 1)%5;
@@ -184,7 +184,6 @@ Player.prototype.update = function(grid) {
 
 Player.prototype.AIturn = function(grid) {
 	var old_dir = JSON.parse(JSON.stringify(this.dir))
-	console.log(this.past_turns)
 	if (grid.check_surrounded(this.pos[0], this.pos[1])) {
 		return true
 	}
@@ -196,8 +195,7 @@ Player.prototype.AIturn = function(grid) {
 		if (Math.abs(turn) === 3) {
 		turn = -Math.sign(turn)*(Math.abs(turn) - 2)
 		}
-		if (Math.sign(turn) == Math.sign(weight)) {
-			console.log('aborted')
+		if (Math.sign(turn) != Math.sign(weight)) {
 			this.dir = old_dir;
 		}
 	}
@@ -207,7 +205,20 @@ Player.prototype.AIturn = function(grid) {
 	if (grid.check_coll(temp_pos[0], temp_pos[1])) {
 	this.dir = 'none';
 	while (this.dir == 'none') {
+		var weight = this.past_turns.reduce(sum_arr);
 		var temp_dir = parseInt(Math.random()*4);
+		var turn = temp_dir - old_dir;
+		if (Math.abs(turn) === 3) {
+		turn = -Math.sign(turn)*(Math.abs(turn) - 2)
+		}
+		if (Math.sign(turn) == Math.sign(weight)) {
+			if (!(Math.random()*this.past_turns.length+1
+				> Math.abs(weight))) {
+				continue;
+
+			}
+		}
+
 		temp_pos[0] = this.pos[0] + (2 - temp_dir)%2
 		temp_pos[1] = this.pos[1] + (temp_dir - 1)%2
 		if (!grid.check_coll(temp_pos[0], temp_pos[1])) {
@@ -330,7 +341,7 @@ var restart_game = function() {
 	}
 	if (options['p3'][0]) {
 	p3 = new Player(parseInt(canvas.width*0.5/step),
-					parseInt(canvas.height*0.8/step),
+					parseInt(canvas.height*0.8/step+1),
 					p3_ctrls, 2, options['p3'][1]);
 	players.push(p3);
 	}
